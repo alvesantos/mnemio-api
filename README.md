@@ -46,9 +46,26 @@ Roda `alembic upgrade head` sempre que puxar mudanças ou antes de rodar o servi
 
 `--host 0.0.0.0` é obrigatório pra testar do celular/outro dispositivo na rede — sem isso o servidor só aceita conexão de `localhost`. API fica em `http://localhost:8000` (ou `http://<seu-ip-local>:8000` pra outros dispositivos; roda `hostname -I` pra ver o IP).
 
+## Testes
+
+```bash
+./venv/bin/pytest -v
+```
+
+Usa SQLite em memória (não toca no Postgres). Cada CRUD tem cobertura de: criar (com/sem nota), validação de nota (0-5) e título, listar, buscar, atualizar, deletar, 404 e isolamento entre usuários.
+
 ## Endpoints
 
 - `GET /` — `{"message": "Hello API"}`
 - `POST /auth/register` — `{name, email, password}` → cria usuário, retorna token
 - `POST /auth/login` — `{email, password}` → retorna token
 - `GET /auth/me` — requer `Authorization: Bearer <token>`, retorna dados do usuário
+
+CRUD idêntico pra cada recurso abaixo (todos exigem `Authorization: Bearer <token>`, itens são isolados por usuário):
+
+- `/livros`
+- `/series`
+- `/filmes`
+- `/animes`
+
+Para cada um: `POST /` (`{title, rating?}`), `GET /` (lista), `GET /{id}`, `PUT /{id}` (`{title?, rating?}`), `DELETE /{id}`. `rating` vai de 0 a 5.
