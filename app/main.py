@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app import models, schemas, security
 from app.database import get_db
 from app.deps import get_current_user
-from app.routers import filmes, livros, series
+from app.routers import animes, filmes, livros, series
 
 app = FastAPI(title="Mnemio API")
 
@@ -23,6 +23,7 @@ app.add_middleware(
 app.include_router(livros.router)
 app.include_router(series.router)
 app.include_router(filmes.router)
+app.include_router(animes.router)
 
 
 @app.get("/")

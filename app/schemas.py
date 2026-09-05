@@ -91,3 +91,24 @@ class FilmeOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class AnimeCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    rating: float | None = Field(default=None, ge=0, le=5)
+
+
+class AnimeUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    rating: float | None = Field(default=None, ge=0, le=5)
+
+
+class AnimeOut(BaseModel):
+    id: int
+    title: str
+    rating: float | None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
