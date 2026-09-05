@@ -41,10 +41,10 @@ Roda `alembic upgrade head` sempre que puxar mudanças ou antes de rodar o servi
 ## Rodando
 
 ```bash
-./venv/bin/uvicorn app.main:app --reload
+./venv/bin/uvicorn app.main:app --host 0.0.0.0 --reload
 ```
 
-API disponível em `http://localhost:8000`.
+`--host 0.0.0.0` é obrigatório pra testar do celular/outro dispositivo na rede — sem isso o servidor só aceita conexão de `localhost`. API fica em `http://localhost:8000` (ou `http://<seu-ip-local>:8000` pra outros dispositivos; roda `hostname -I` pra ver o IP).
 
 ## Endpoints
 
