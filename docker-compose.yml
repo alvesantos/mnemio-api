@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mnemio-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mnemio
+      POSTGRES_PASSWORD: mnemio
+      POSTGRES_DB: mnemio
+    ports:
+      - "5433:5432"
+    volumes:
+      - mnemio-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  mnemio-postgres-data:

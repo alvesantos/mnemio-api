@@ -5,16 +5,25 @@
 - Python 3
 - FastAPI
 - Uvicorn (ASGI server)
-- SQLAlchemy + SQLite
+- SQLAlchemy + PostgreSQL (psycopg 3)
 - Alembic (migrations)
 - PyJWT + bcrypt (autenticação)
+- Docker Compose (Postgres local)
 
 ## Setup
 
 ```bash
+docker compose up -d                   # sobe Postgres local (porta 5433)
 python3 -m venv venv
 ./venv/bin/pip install -r requirements.txt
-cp .env.example .env   # define SECRET_KEY
+cp .env.example .env                   # define SECRET_KEY e DATABASE_URL
+./venv/bin/alembic upgrade head        # cria as tabelas
+```
+
+`.env.example` já vem com `DATABASE_URL` apontando pro Postgres do `docker-compose.yml` (`mnemio`/`mnemio` em `localhost:5433`). Gera um `SECRET_KEY` próprio:
+
+```bash
+python3 -c "import secrets; print(secrets.token_hex(32))"
 ```
 
 ## Migrations

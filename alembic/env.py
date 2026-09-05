@@ -4,6 +4,9 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from app.database import SQLALCHEMY_DATABASE_URL, Base
 from app import models  # noqa: F401  (registers models on Base.metadata)
