@@ -45,3 +45,12 @@ class Serie(TimestampMixin, Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     title: Mapped[str] = mapped_column(String, nullable=False)
     rating: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+
+class Filme(TimestampMixin, Base):
+    __tablename__ = "filmes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    rating: Mapped[float | None] = mapped_column(Float, nullable=True)
