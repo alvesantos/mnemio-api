@@ -28,3 +28,24 @@ class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserOut
+
+
+class LivroCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    rating: float | None = Field(default=None, ge=0, le=5)
+
+
+class LivroUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    rating: float | None = Field(default=None, ge=0, le=5)
+
+
+class LivroOut(BaseModel):
+    id: int
+    title: str
+    rating: float | None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
