@@ -5,7 +5,7 @@ e o Cloud Run já tem HTTPS. Evita depender de outro serviço só para isso.
 """
 
 # Preencha antes de publicar: vira o canal oficial de contato do app.
-CONTACT_EMAIL = "SEU_EMAIL_DE_CONTATO_AQUI"
+CONTACT_EMAIL = "ebagabe.2025@gmail.com"
 
 LAST_UPDATED = "6 de setembro de 2026"
 
