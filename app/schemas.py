@@ -4,6 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 MediaStatusLiteral = Literal["plano", "andamento", "finalizado", "dropado"]
+MediaTypeLiteral = Literal["livros", "series", "filmes", "animes"]
 
 NOTES_MAX = 5000
 
@@ -43,6 +44,44 @@ class Token(BaseModel):
 # --------------------------------------------------------------------------
 
 
+class AchievementOut(BaseModel):
+    code: str
+    title: str
+    description: str
+    icon: str
+    target: int
+    progress: int
+    unlocked: bool
+
+
+class StatsOut(BaseModel):
+    total: int
+    finished: int
+    in_progress: int
+    dropped: int
+    rated: int
+    noted: int
+    finished_by_type: dict[str, int]
+    streak_count: int
+    longest_streak: int
+    achievements: list[AchievementOut]
+
+
+class ContinueItemOut(BaseModel):
+    """Item em andamento, achatado para a seção "Continue de onde parou"."""
+
+    id: int
+    type: MediaTypeLiteral
+    title: str
+    status: MediaStatusLiteral
+    rating: float | None
+    # Livros contam páginas; séries e animes contam episódios; filmes não têm.
+    progress_current: int | None
+    progress_total: int | None
+    progress_label: str | None
+    updated_at: datetime
+
+
 class MediaCreate(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     rating: float | None = Field(default=None, ge=0, le=5)
@@ -66,6 +105,8 @@ class MediaOut(BaseModel):
     finished_at: datetime | None
     created_at: datetime
     updated_at: datetime
+    # Preenchido só em create/update; vazio nas leituras.
+    unlocked_achievements: list[AchievementOut] = []
 
     model_config = ConfigDict(from_attributes=True)
 

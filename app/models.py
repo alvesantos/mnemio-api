@@ -61,6 +61,12 @@ class TimestampMixin:
 class MediaMixin(TimestampMixin):
     """Campos comuns a toda mídia acompanhada pelo usuário."""
 
+    # Transitório, nunca persistido: o router preenche em create/update com as
+    # conquistas recém-desbloqueadas, para o app exibir o toast na hora.
+    # Tupla vazia como default por ser imutável — evita estado compartilhado
+    # entre instâncias.
+    unlocked_achievements = ()
+
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, default=MediaStatus.PLANO, server_default=MediaStatus.PLANO
     )

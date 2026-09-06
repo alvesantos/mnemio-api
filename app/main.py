@@ -6,7 +6,7 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from app import models, schemas, security
+from app import achievements, models, schemas, security, stats
 from app.database import get_db
 from app.deps import get_current_user
 from app.routers import animes, filmes, livros, series
@@ -63,3 +63,34 @@ def login(payload: schemas.UserLogin, db: Session = Depends(get_db)):
 @app.get("/auth/me", response_model=schemas.UserOut)
 def read_me(current_user: models.User = Depends(get_current_user)):
     return current_user
+
+
+@app.get("/me/stats", response_model=schemas.StatsOut)
+def read_stats(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Números do perfil e o catálogo completo de conquistas.
+
+    Devolve também as bloqueadas, com progresso, para o app mostrar o quanto
+    falta em cada uma.
+    """
+    computed = stats.compute_user_stats(db, current_user)
+    unlocked = achievements.unlocked_codes(db, current_user.id)
+
+    return {
+        **computed,
+        "achievements": [
+            achievements.serialize(definition, computed, definition.code in unlocked)
+            for definition in achievements.CATALOG
+        ],
+    }
+
+
+@app.get("/me/continue", response_model=list[schemas.ContinueItemOut])
+def read_continue(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Itens em andamento, para a seção "Continue de onde parou"."""
+    return stats.continue_items(db, current_user)
