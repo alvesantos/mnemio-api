@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app import models
 from app.database import get_db
 from app.deps import get_current_user
+from app.media_rules import apply_media_rules
 
 
 def make_crud_router(
@@ -39,6 +40,7 @@ def make_crud_router(
         current_user: models.User = Depends(get_current_user),
     ):
         item = model(**payload.model_dump(), user_id=current_user.id)
+        apply_media_rules(item)
         db.add(item)
         db.commit()
         db.refresh(item)
@@ -74,6 +76,7 @@ def make_crud_router(
         item = _get_owned_or_404(item_id, db, current_user)
         for field, value in payload.model_dump(exclude_unset=True).items():
             setattr(item, field, value)
+        apply_media_rules(item)
         db.commit()
         db.refresh(item)
         return item
