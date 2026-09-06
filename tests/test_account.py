@@ -65,3 +65,23 @@ def test_delete_account_does_not_touch_other_users(client, auth_headers):
     remaining = client.get("/livros/", headers=other).json()
     assert [item["title"] for item in remaining] == ["Do outro"]
     assert client.get("/auth/me", headers=other).status_code == 200
+
+
+def test_deletion_page_is_public(client):
+    response = client.get("/exclusao-de-conta")
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+
+
+def test_deletion_page_meets_play_requirements(client):
+    body = client.get("/exclusao-de-conta").text
+    # 1. cita o nome do app
+    assert "Mnemio" in body
+    # 2. descreve os passos
+    assert "Perfil" in body and "Excluir conta" in body
+    # 3. diz o que e apagado e o que e mantido, com prazo
+    assert "excluídos" in body and "mantidos" in body and "30 dias" in body
+
+
+def test_privacy_page_links_to_deletion_page(client):
+    assert "/exclusao-de-conta" in client.get("/privacidade").text

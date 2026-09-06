@@ -72,6 +72,12 @@ def privacy_policy():
     return legal.PRIVACY_HTML
 
 
+@app.get("/exclusao-de-conta", response_class=HTMLResponse, include_in_schema=False)
+def account_deletion_page():
+    """URL de exclusão de conta exigida pelo Google Play, separada da política."""
+    return legal.DELETION_HTML
+
+
 @app.delete("/auth/me", status_code=status.HTTP_204_NO_CONTENT)
 def delete_me(
     db: Session = Depends(get_db),
