@@ -2,11 +2,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Response, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 
-from app import achievements, models, schemas, security, stats
+from app import achievements, legal, models, schemas, security, stats
 from app.database import get_db
 from app.deps import get_current_user
 from app.routers import animes, filmes, livros, series
@@ -63,6 +64,31 @@ def login(payload: schemas.UserLogin, db: Session = Depends(get_db)):
 @app.get("/auth/me", response_model=schemas.UserOut)
 def read_me(current_user: models.User = Depends(get_current_user)):
     return current_user
+
+
+@app.get("/privacidade", response_class=HTMLResponse, include_in_schema=False)
+def privacy_policy():
+    """URL pública exigida pelo Google Play para publicar o app."""
+    return legal.PRIVACY_HTML
+
+
+@app.delete("/auth/me", status_code=status.HTTP_204_NO_CONTENT)
+def delete_me(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Apaga a conta e tudo que pertence a ela.
+
+    Exigido pelo Google Play para apps que permitem criar conta. Não há
+    cascade nas foreign keys, então as tabelas filhas são limpas na mão
+    antes do usuário, dentro da mesma transação.
+    """
+    for model in (models.Livro, models.Serie, models.Filme, models.Anime, models.Achievement):
+        db.query(model).filter(model.user_id == current_user.id).delete(synchronize_session=False)
+
+    db.delete(current_user)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @app.get("/me/stats", response_model=schemas.StatsOut)
