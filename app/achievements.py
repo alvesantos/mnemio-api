@@ -72,6 +72,15 @@ CATALOG: tuple[AchievementDef, ...] = (
         target=10,
     ),
     AchievementDef(
+        code="dorameiro",
+        title="Dorameiro",
+        description="Finalize 10 doramas.",
+        icon="heart",
+        condition=lambda s: s["finished_by_type"]["doramas"] >= 10,
+        progress=lambda s: s["finished_by_type"]["doramas"],
+        target=10,
+    ),
+    AchievementDef(
         code="colecionador",
         title="Colecionador",
         description="Tenha 50 obras cadastradas.",

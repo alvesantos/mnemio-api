@@ -14,6 +14,7 @@ MEDIA_MODELS = {
     "series": models.Serie,
     "filmes": models.Filme,
     "animes": models.Anime,
+    "doramas": models.Dorama,
 }
 
 
@@ -43,6 +44,7 @@ PROGRESS_BY_TYPE = {
     "livros": ("pages_read", "total_pages", "páginas"),
     "series": ("episodes_watched", "total_episodes", "episódios"),
     "animes": ("episodes_watched", "total_episodes", "episódios"),
+    "doramas": ("episodes_watched", "total_episodes", "episódios"),
     "filmes": (None, None, None),
 }
 

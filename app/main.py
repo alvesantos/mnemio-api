@@ -2,17 +2,31 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from contextlib import asynccontextmanager
+
 from fastapi import Depends, FastAPI, HTTPException, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 
-from app import achievements, legal, models, schemas, security, stats
+from app import achievements, legal, media_sources, models, schemas, security, stats
 from app.database import get_db
 from app.deps import get_current_user
-from app.routers import animes, filmes, livros, series
+from app.routers import animes, catalogo, doramas, filmes, livros, series
 
-app = FastAPI(title="Mnemio API")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Um único client HTTP por processo, reusado por todas as fontes externas.
+
+    Criar um por request jogaria fora o pool de conexões e o handshake TLS.
+    """
+    media_sources.startup()
+    yield
+    await media_sources.shutdown()
+
+
+app = FastAPI(title="Mnemio API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,6 +39,8 @@ app.include_router(livros.router)
 app.include_router(series.router)
 app.include_router(filmes.router)
 app.include_router(animes.router)
+app.include_router(doramas.router)
+app.include_router(catalogo.router)
 
 
 @app.get("/")
@@ -88,8 +104,19 @@ def delete_me(
     Exigido pelo Google Play para apps que permitem criar conta. Não há
     cascade nas foreign keys, então as tabelas filhas são limpas na mão
     antes do usuário, dentro da mesma transação.
+
+    media_items fica de fora de propósito: é catálogo global, compartilhado
+    com os outros usuários.
     """
-    for model in (models.Livro, models.Serie, models.Filme, models.Anime, models.Achievement):
+    for model in (
+        models.Livro,
+        models.Serie,
+        models.Filme,
+        models.Anime,
+        models.Dorama,
+        models.Achievement,
+        models.PendingMediaLink,
+    ):
         db.query(model).filter(model.user_id == current_user.id).delete(synchronize_session=False)
 
     db.delete(current_user)
