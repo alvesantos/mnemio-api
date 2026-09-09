@@ -26,6 +26,29 @@ cp .env.example .env                   # define SECRET_KEY e DATABASE_URL
 python3 -c "import secrets; print(secrets.token_hex(32))"
 ```
 
+### Chaves das fontes externas
+
+A busca de mídias consulta APIs externas em tempo real. Sem as chaves o backend
+sobe normalmente — só a busca do tipo correspondente devolve vazio, com aviso no log.
+
+| Variável | Fonte | Como obter |
+|---|---|---|
+| `TMDB_API_READ_ACCESS_TOKEN` | TMDB (filmes, séries, doramas) | conta em themoviedb.org → Settings → API → "API Read Access Token" (v4) |
+| `GOOGLE_BOOKS_API_KEY` | Google Books (livros) | Google Cloud Console → APIs → Books API → credenciais. Opcional na API, mas sem chave a quota é por IP e estoura rápido |
+
+**Anime não tem busca externa.** A AniList desativou a API pública, então
+`/busca?tipo=animes` responde `400` e o app manda direto para o cadastro manual.
+O client continua pronto em `app/media_sources/anilist.py`: para religar, basta
+devolver a linha `"animes": anilist.CLIENT` ao dicionário `CLIENTS` de
+`app/media_sources/__init__.py`.
+
+Passo a passo de deploy, e o que fazer quando o faturamento do GCP voltar:
+[`docs/DEPLOY.md`](docs/DEPLOY.md). Como a busca e o cache funcionam por dentro:
+[`docs/busca-e-cache-de-midias.md`](docs/busca-e-cache-de-midias.md).
+
+Os ajustes de timeout, TTL de cache e países que contam como dorama estão
+comentados em `.env.example`.
+
 ## Migrations
 
 Schema do banco é versionado via Alembic (não usa `create_all`).
@@ -67,5 +90,22 @@ CRUD idêntico pra cada recurso abaixo (todos exigem `Authorization: Bearer <tok
 - `/series`
 - `/filmes`
 - `/animes`
+- `/doramas`
 
 Para cada um: `POST /` (`{title, rating?}`), `GET /` (lista), `GET /{id}`, `PUT /{id}` (`{title?, rating?}`), `DELETE /{id}`. `rating` vai de 0 a 5.
+
+No `POST /` dá pra mandar `media_ref` (`{source, external_id}`) para vincular o
+item ao catálogo — ver abaixo.
+
+### Busca e catálogo de mídias
+
+- `GET /busca?q=duna&tipo=filmes&limit=20` — busca em tempo real na fonte externa
+  (TMDB ou Google Books, conforme o tipo). Não persiste nada. Cada resultado
+  traz `cached`/`media_id` quando o item já está no banco. Se a fonte estiver fora,
+  responde 200 com o que houver em cache e o header `X-Search-Degraded: true`.
+- `GET /midias/{tipo}/{source}/{external_id}` — detalhe de um item. Serve do cache
+  quando existe; senão busca na fonte e grava em background.
+
+O catálogo (`media_items`) é global e cacheado **sob demanda**: um item só entra no
+banco quando alguém abre o detalhe ou o adiciona à própria lista. Nada de importar
+catálogo inteiro. Detalhes em [`docs/busca-e-cache-de-midias.md`](docs/busca-e-cache-de-midias.md).
