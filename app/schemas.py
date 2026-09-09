@@ -4,7 +4,8 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 MediaStatusLiteral = Literal["plano", "andamento", "finalizado", "dropado"]
-MediaTypeLiteral = Literal["livros", "series", "filmes", "animes"]
+MediaTypeLiteral = Literal["livros", "series", "filmes", "animes", "doramas"]
+MediaSourceLiteral = Literal["tmdb", "anilist", "google_books"]
 
 NOTES_MAX = 5000
 
@@ -105,6 +106,8 @@ class MediaOut(BaseModel):
     finished_at: datetime | None
     created_at: datetime
     updated_at: datetime
+    # Item do catálogo que originou o registro; nulo no cadastro manual.
+    media_id: int | None = None
     # Preenchido só em create/update; vazio nas leituras.
     unlocked_achievements: list[AchievementOut] = []
 
@@ -178,6 +181,18 @@ class AnimeOut(EpisodicOut):
     pass
 
 
+class DoramaCreate(EpisodicCreate):
+    pass
+
+
+class DoramaUpdate(EpisodicUpdate):
+    pass
+
+
+class DoramaOut(EpisodicOut):
+    pass
+
+
 # --------------------------------------------------------------------------
 # Filmes — sem progresso numérico, só status
 # --------------------------------------------------------------------------
@@ -193,3 +208,34 @@ class FilmeUpdate(MediaUpdate):
 
 class FilmeOut(MediaOut):
     pass
+
+
+# --------------------------------------------------------------------------
+# Catálogo de mídias (busca externa + cache)
+# --------------------------------------------------------------------------
+
+
+class MediaSearchResult(BaseModel):
+    """Um resultado de busca. Ainda não está necessariamente no banco."""
+
+    source: MediaSourceLiteral
+    external_id: str
+    media_type: str
+    title: str
+    original_title: str | None = None
+    poster_url: str | None = None
+    release_year: int | None = None
+    synopsis: str | None = None
+    # true quando o item já existe no cache local — o detalhe abre instantâneo.
+    cached: bool = False
+    media_id: int | None = None
+
+
+class MediaItemOut(MediaSearchResult):
+    """Detalhe de um item. `cached=false` significa que veio direto da fonte."""
+
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    refreshed_at: datetime | None = None
+
+    model_config = ConfigDict(from_attributes=True)
