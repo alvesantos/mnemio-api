@@ -83,11 +83,20 @@ class ContinueItemOut(BaseModel):
     updated_at: datetime
 
 
+class MediaRef(BaseModel):
+    """Aponta para um item do catálogo externo, para vincular no cadastro."""
+
+    source: MediaSourceLiteral
+    external_id: str = Field(min_length=1, max_length=64)
+
+
 class MediaCreate(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     rating: float | None = Field(default=None, ge=0, le=5)
     status: MediaStatusLiteral = "plano"
     notes: str | None = Field(default=None, max_length=NOTES_MAX)
+    # Opcional: o cadastro manual continua funcionando sem catálogo nenhum.
+    media_ref: MediaRef | None = None
 
 
 class MediaUpdate(BaseModel):
